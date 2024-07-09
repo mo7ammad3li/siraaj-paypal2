@@ -63,7 +63,7 @@ export async function POST(req: Request) {
       if (event.event_type === "CHECKOUT.ORDER.APPROVED") {
         console.log("Processing CHECKOUT.ORDER.APPROVED event");
         console.log("Order purchase_units:", order.purchase_units);
-        customId = order.purchase_units?.[0]?.custom_id;
+        customId = order.purchase_units?.[0]?.custom_id || order.purchase_units?.[0]?.reference_id;
         orderAmount = order.purchase_units?.[0]?.amount?.value;
       }
       if (event.event_type === "PAYMENT.CAPTURE.COMPLETED") {
