@@ -83,16 +83,23 @@ export async function POST(req: Request) {
         );
       }
 
-      const customIdParts = customId.split("|");
-      if (customIdParts.length !== 3) {
-        console.error("Custom ID is not in the expected format");
-        return NextResponse.json(
-          { error: "Custom ID is not in the expected format" },
-          { status: 400 }
-        );
+      // If customId is reference_id, derive plan, credits, and buyerId from it
+      if (customId.includes('-')) {
+        // Placeholder logic: Replace this with actual logic to derive plan, credits, and buyerId
+        plan = 'defaultPlan';
+        credits = '100'; // Default credits, adjust as needed
+        buyerId = 'defaultBuyerId';
+      } else {
+        const customIdParts = customId.split("|");
+        if (customIdParts.length !== 3) {
+          console.error("Custom ID is not in the expected format");
+          return NextResponse.json(
+            { error: "Custom ID is not in the expected format" },
+            { status: 400 }
+          );
+        }
+        [plan, credits, buyerId] = customIdParts;
       }
-
-      [plan, credits, buyerId] = customIdParts;
 
       // Start a database transaction
       const session = await mongoose.startSession();
