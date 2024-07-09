@@ -32,15 +32,16 @@ export async function POST(req: Request) {
       .createHmac("sha256", webhookId)
       .update(
         paypalTransmissionId +
-          "|" +
-          paypalTransmissionTime +
-          "|" +
-          body +
-          "|" +
-          webhookId
+        "|" +
+        paypalTransmissionTime +
+        "|" +
+        body +
+        "|" +
+        webhookId
       )
       .digest("base64");
 
+    // Uncomment the following lines for debugging
     // console.log("Verified signature:", verifiedSignature);
     // console.log("Received signature:", paypalSignature);
 
@@ -50,7 +51,6 @@ export async function POST(req: Request) {
     // }
 
     const event = JSON.parse(body);
-    console.log("Received event:", event);
 
     if (
       event.event_type === "CHECKOUT.ORDER.APPROVED" ||
@@ -61,45 +61,41 @@ export async function POST(req: Request) {
       let customId, plan, credits, buyerId, orderAmount;
 
       if (event.event_type === "CHECKOUT.ORDER.APPROVED") {
-        console.log("Processing CHECKOUT.ORDER.APPROVED event");
-        console.log("Order purchase_units:", order.purchase_units);
-        customId = order.purchase_units?.[0]?.custom_id || order.purchase_units?.[0]?.reference_id;
-        orderAmount = order.purchase_units?.[0]?.amount?.value;
+        customId = order.purchase_units[0]?.custom_id || order.purchase_units[0]?.reference_id;
+        orderAmount = order.purchase_units[0]?.amount.value;
       }
       if (event.event_type === "PAYMENT.CAPTURE.COMPLETED") {
-        console.log("Processing PAYMENT.CAPTURE.COMPLETED event");
-        customId = order.custom_id;
-        orderAmount = order.amount?.value;
+        customId = order.custom_id || order.reference_id;
+        orderAmount = order.amount.value;
       }
 
+      // Log the customId for debugging
       console.log("customId:", customId);
-      console.log("orderAmount:", orderAmount);
 
       if (!customId) {
-        console.error("Custom ID is undefined");
+        console.log("Custom ID is undefined");
         return NextResponse.json(
           { error: "Custom ID is undefined" },
           { status: 400 }
         );
       }
 
-      // If customId is reference_id, derive plan, credits, and buyerId from it
-      if (customId.includes('-')) {
-        // Placeholder logic: Replace this with actual logic to derive plan, credits, and buyerId
-        plan = 'defaultPlan';
-        credits = '100'; // Default credits, adjust as needed
-        buyerId = 'defaultBuyerId';
-      } else {
-        const customIdParts = customId.split("|");
-        if (customIdParts.length !== 3) {
-          console.error("Custom ID is not in the expected format");
-          return NextResponse.json(
-            { error: "Custom ID is not in the expected format" },
-            { status: 400 }
-          );
-        }
-        [plan, credits, buyerId] = customIdParts;
+      [plan, credits, buyerId] = customId.split("|");
+
+      // Check if the customId is in the expected format
+      if (!plan || !credits || !buyerId) {
+        console.log("Custom ID is not in the expected format");
+        return NextResponse.json(
+          { error: "Custom ID is not in the expected format" },
+          { status: 400 }
+        );
       }
+
+      // Log the extracted values for debugging
+      console.log("plan:", plan);
+      console.log("credits:", credits);
+      console.log("buyerId:", buyerId);
+      console.log("orderAmount:", orderAmount);
 
       // Start a database transaction
       const session = await mongoose.startSession();
