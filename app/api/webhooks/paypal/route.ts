@@ -68,7 +68,24 @@ export async function POST(req: Request) {
         orderAmount = order.amount.value;
       }
 
-      [plan, credits, buyerId] = customId.split("|");
+      if (!customId) {
+        console.error("Custom ID is undefined");
+        return NextResponse.json(
+          { error: "Custom ID is undefined" },
+          { status: 400 }
+        );
+      }
+
+      const customIdParts = customId.split("|");
+      if (customIdParts.length !== 3) {
+        console.error("Custom ID is not in the expected format");
+        return NextResponse.json(
+          { error: "Custom ID is not in the expected format" },
+          { status: 400 }
+        );
+      }
+
+      [plan, credits, buyerId] = customIdParts;
 
       // Start a database transaction
       const session = await mongoose.startSession();
