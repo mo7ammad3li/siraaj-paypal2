@@ -50,6 +50,7 @@ export async function POST(req: Request) {
     // }
 
     const event = JSON.parse(body);
+    console.log("Received event:", event);
 
     if (
       event.event_type === "CHECKOUT.ORDER.APPROVED" ||
@@ -60,13 +61,19 @@ export async function POST(req: Request) {
       let customId, plan, credits, buyerId, orderAmount;
 
       if (event.event_type === "CHECKOUT.ORDER.APPROVED") {
-        customId = order.purchase_units[0].custom_id;
-        orderAmount = order.purchase_units[0].amount.value;
+        console.log("Processing CHECKOUT.ORDER.APPROVED event");
+        console.log("Order purchase_units:", order.purchase_units);
+        customId = order.purchase_units?.[0]?.custom_id;
+        orderAmount = order.purchase_units?.[0]?.amount?.value;
       }
       if (event.event_type === "PAYMENT.CAPTURE.COMPLETED") {
+        console.log("Processing PAYMENT.CAPTURE.COMPLETED event");
         customId = order.custom_id;
-        orderAmount = order.amount.value;
+        orderAmount = order.amount?.value;
       }
+
+      console.log("customId:", customId);
+      console.log("orderAmount:", orderAmount);
 
       if (!customId) {
         console.error("Custom ID is undefined");
