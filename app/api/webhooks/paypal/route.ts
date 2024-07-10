@@ -85,6 +85,7 @@ export async function POST(req: Request) {
       // Check if the customId is in the expected format
       if (!plan || !credits || !buyerId) {
         console.log("Custom ID is not in the expected format");
+        console.log("Parsed values - plan:", plan, "credits:", credits, "buyerId:", buyerId);
         return NextResponse.json(
           { error: "Custom ID is not in the expected format" },
           { status: 400 }
